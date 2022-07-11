@@ -5,8 +5,6 @@ import jm.task.core.jdbc.util.Util;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaDelete;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -78,20 +76,18 @@ public class UserDaoHibernateImpl implements UserDao {
 
     @Override
     public List<User> getAllUsers() {
-        List<User> userList = new ArrayList<>();
         Transaction ts = null;
+        List<User> userList = new ArrayList<>();
 
         try (Session session = Util.getSessionFactory().openSession()) {
             ts = session.beginTransaction();
-            userList = session.createNativeQuery("Select * from users3", User.class).getResultList();
+            userList = session.createQuery("from User").list();
             ts.commit();
+            userList.forEach(System.out::println);
         } catch (Exception e) {
             if (ts != null) {
                 ts.rollback();
             }
-        }
-        for (User user : userList) {
-            System.out.println(user);
         }
         return userList;
     }
@@ -102,12 +98,7 @@ public class UserDaoHibernateImpl implements UserDao {
 
         try (Session session = Util.getSessionFactory().openSession()) {
             ts = session.beginTransaction();
-
-            CriteriaBuilder cb = session.getCriteriaBuilder();
-            CriteriaDelete<User> delete = cb.createCriteriaDelete(User.class);
-            delete.from(User.class);
-
-            session.createQuery(delete).executeUpdate();
+            session.createQuery("delete from User").executeUpdate();
             ts.commit();
         } catch (Exception e) {
             if (ts != null) {
